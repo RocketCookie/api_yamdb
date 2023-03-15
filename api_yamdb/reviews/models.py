@@ -50,11 +50,12 @@ class Title(models.Model):
 
 class GenreTitle(models.Model):
     """Промежуточная модель БД для жанров"""
-    ganre = models.ForeignKey(Genre, on_delete=models.CASCADE)
+    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.ganre} {self.title}'
+
 
 class Review(models.Model):
     author = models.ForeignKey(
@@ -63,12 +64,12 @@ class Review(models.Model):
         related_name='reviews',
         verbose_name='Автор'
     )
-    #title = models.ForeignKey(
-    #   Title,
-    #    on_delete=models.CASCADE,
-    #    related_name='reviews',
-    #    verbose_name='Произведение'
-    #)
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+        related_name='reviews',
+        verbose_name='Произведение'
+    )
     text = models.TextField(verbose_name='Текст')
     score = models.IntegerField(verbose_name='Оценка')
     pub_date = models.DateTimeField(
@@ -76,7 +77,7 @@ class Review(models.Model):
         db_index=True,
         verbose_name='Дата добавления'
     )
-    
+
     class Meta:
         constraints = (
             models.UniqueConstraint(
@@ -84,11 +85,11 @@ class Review(models.Model):
                 name='unique_author_title'
             ),
         )
-    
+
 
 class Comment(models.Model):
     author = models.ForeignKey(
-        User, 
+        User,
         on_delete=models.CASCADE,
         related_name='comments',
         verbose_name='Автор'
@@ -105,4 +106,3 @@ class Comment(models.Model):
         db_index=True,
         verbose_name='Дата добавления'
     )
-
