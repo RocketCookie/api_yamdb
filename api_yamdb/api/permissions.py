@@ -1,5 +1,6 @@
 from rest_framework import permissions
 
+
 class AuthorOrSuperUserOrAdminOrReadOnly(permissions.BasePermission):
     """
     Разрешает анонимному пользователю читать отзывы и комментарии,
@@ -18,7 +19,7 @@ class AuthorOrSuperUserOrAdminOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-        return(
+        return (
             request.user == obj.author
             or request.user.is_staff
             or request.user.is_superuser

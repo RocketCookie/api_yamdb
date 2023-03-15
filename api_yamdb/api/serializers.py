@@ -1,11 +1,13 @@
 
-from rest_framework import serializers
-from rest_framework.status import HTTP_400_BAD_REQUEST
-from rest_framework.exceptions import ValidationError
-from rest_framework.validators import UniqueTogetherValidator
-from reviews.models import Title, Category, Comment, Review
-
 from datetime import datetime
+
+from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+from rest_framework.status import HTTP_400_BAD_REQUEST
+from rest_framework.validators import UniqueTogetherValidator
+
+from reviews.models import Category, Comment, Review, Title
+
 current_year = datetime.now().year
 CHAR_LEN = 256
 
@@ -67,4 +69,3 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
-
