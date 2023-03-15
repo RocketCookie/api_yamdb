@@ -1,11 +1,22 @@
-from django.shortcuts import get_object_or_404
+
 from rest_framework import viewsets
-from rest_framework.pagination import LimitOffsetPagination
-
+from reviews.models import Title, Review
+from .serializers import TitleSerializer, CommentSerializer, ReviewSerializer
+# from rest_framework.permissions import (IsAdminUser)
 from .permissions import AuthorOrSuperUserOrAdminOrReadOnly
-from .serializers import CommentSerializer, ReviewSerializer
-from reviews.models import Review
+# from rest_framework.pagination import LimitOffsetPagination
+# from rest_framework import filters
+from django.shortcuts import get_object_or_404
 
+
+class TitleViewSet(viewsets.ModelViewSet):
+    """Вьюсет POST, GET, PATCH, DELETE методы для Title сериализатора"""
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    # permission_classes = (IsAdminUser)
+    # pagination_class = LimitOffsetPagination
+    # filter_backends = (filters.SearchFilter,)
+    # search_fields = ('category__slug', 'genre__slug', 'year')
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
@@ -41,3 +52,4 @@ class CommentViewSet(viewsets.ModelViewSet):
             author=self.request.user,
             review=self.get_review()
         )
+
