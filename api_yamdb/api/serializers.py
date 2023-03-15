@@ -1,7 +1,9 @@
+
 from rest_framework import serializers
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.exceptions import ValidationError
-from reviews.models import Title, Category
+from rest_framework.validators import UniqueTogetherValidator
+from reviews.models import Title, Category, Comment, Review
 
 from datetime import datetime
 current_year = datetime.now().year
@@ -32,3 +34,37 @@ def validate_name_long(data):
     if len(data['name']) > CHAR_LEN:
         raise ValidationError("Строка слишком длинная!",
                               code=HTTP_400_BAD_REQUEST)
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='username'
+    )
+
+    class Meta:
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        model = Review
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Review.objects.all(),
+                fields=('author', 'title')
+            )
+        ]
+
+    def validate_score(self, value):
+        if not (1 <= value <= 10):
+            raise serializers.ValidationError('Введите число от 1 до 10!')
+        return value
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='username'
+    )
+
+    class Meta:
+        fields = ('id', 'text', 'author', 'pub_date')
+        model = Comment
+
