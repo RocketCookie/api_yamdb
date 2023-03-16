@@ -3,11 +3,12 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 User = get_user_model()
+CHAR_LEN = 256
 
 
 class Genre(models.Model):
     """Модель БД для жанров"""
-    name = models.CharField('Наименование', max_length=256)
+    name = models.CharField('Наименование', max_length=CHAR_LEN)
     slug = models.SlugField('Слаг', unique=True)
 
     def __str__(self):
@@ -20,7 +21,7 @@ class Genre(models.Model):
 
 class Category(models.Model):
     """Модель БД для категорий"""
-    name = models.CharField('Наименование', max_length=256)
+    name = models.CharField('Наименование', max_length=CHAR_LEN)
     slug = models.SlugField('Слаг', unique=True)
 
     def __str__(self):
@@ -33,7 +34,9 @@ class Category(models.Model):
 
 class Title(models.Model):
     """Модель БД для произведений"""
+
     name = models.CharField('Наименование', max_length=256)
+
     year = models.IntegerField('Год издания')
     genre = models.ManyToManyField(Genre, through='GenreTitle')
     category = models.ForeignKey(Category,
