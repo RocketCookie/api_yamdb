@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
 
 User = get_user_model()
 CHAR_LEN = 256
@@ -39,11 +39,12 @@ class Title(models.Model):
 
     year = models.IntegerField('Год издания')
     genre = models.ManyToManyField(Genre, through='GenreTitle')
-    category = models.ForeignKey(Category,
+    category = models.ForeignKey(
+        Category,
         on_delete=models.SET_NULL,
         related_name='title', blank=False, null=True)
     descriptions = models.TextField('Описание')
-    
+
     def __str__(self):
         return self.name
 
