@@ -1,13 +1,33 @@
-
 # from rest_framework.pagination import LimitOffsetPagination
 # from rest_framework import filters
+from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from rest_framework import mixins, status, viewsets
+from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-# from rest_framework.permissions import (IsAdminUser)
 from .permissions import AuthorOrSuperUserOrAdminOrReadOnly
-from .serializers import CommentSerializer, ReviewSerializer, TitleSerializer
-from reviews.models import Review, Title
+from .serializers import (CommentSerializer, UserCreateSerializer,
+                          ReviewSerializer, TitleSerializer)
+from .utilities import send_confirm_code
+from reviews.models import Review, Title, User
+
+
+class UserCreateView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        serializer = UserCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            email = request.data.get('email')
+            username = request.data.get('username')
+            user = User.objects.get(username=username)
+            confirm_code = default_token_generator.make_token(user)
+            send_confirm_code(email, confirm_code)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
