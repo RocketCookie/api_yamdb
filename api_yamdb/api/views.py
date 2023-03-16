@@ -1,7 +1,19 @@
-# from rest_framework.pagination import LimitOffsetPagination
+
+
+from rest_framework import viewsets
+from reviews.models import Title, Review
+from .serializers import TitleSerializer, CommentSerializer, ReviewSerializer
+# from rest_framework.permissions import (IsAdminUser)
+from .permissions import AuthorOrSuperUserOrAdminOrReadOnly
+
+from rest_framework.pagination import LimitOffsetPagination
+
 # from rest_framework import filters
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
+
+from django.db.models import Avg
+
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAdminUser
@@ -58,6 +70,7 @@ class CategoryViewSet(mixins.ListModelMixin,
     pagination_class = LimitOffsetPagination
 
 
+
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет POST, GET, PATCH, DELETE методы для Title сериализатора"""
     queryset = Title.objects.all()
@@ -80,10 +93,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return self.get_title().reviews.all()
 
     def perform_create(self, serializer):
+        title = self.get_title()
         serializer.save(
             author=self.request.user,
-            title=self.get_title()
+            title=title
         )
+        rating = Review.objects.filter(title=title).aggregate(Avg('score'))
+        title.rating = rating.get('score__avg')
+        title.save(update_fields=["rating"])
 
 
 class CommentViewSet(viewsets.ModelViewSet):
