@@ -1,4 +1,5 @@
 
+
 from rest_framework import viewsets, mixins
 from reviews.models import Title, Review, Genre, Category
 from .serializers import (TitleSerializer, CommentSerializer,
@@ -10,6 +11,38 @@ from django.shortcuts import get_object_or_404
 from rest_framework import filters
 
 
+
+
+# from rest_framework.pagination import LimitOffsetPagination
+# from rest_framework import filters
+from django.contrib.auth.tokens import default_token_generator
+from django.shortcuts import get_object_or_404
+from rest_framework import mixins, status, viewsets
+from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .permissions import AuthorOrSuperUserOrAdminOrReadOnly
+from .serializers import (CommentSerializer, UserCreateSerializer,
+                          ReviewSerializer, TitleSerializer)
+from .utilities import send_confirm_code
+from reviews.models import Review, Title, User
+
+
+class UserCreateView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        serializer = UserCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            email = request.data.get('email')
+            username = request.data.get('username')
+            user = User.objects.get(username=username)
+            confirm_code = default_token_generator.make_token(user)
+            send_confirm_code(email, confirm_code)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class GenreViewSet(mixins.ListModelMixin,
                    mixins.CreateModelMixin,
                    mixins.DestroyModelMixin,
@@ -34,6 +67,7 @@ class CategoryViewSet(mixins.ListModelMixin,
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     pagination_class = LimitOffsetPagination
+
 
 
 class TitleViewSet(viewsets.ModelViewSet):
