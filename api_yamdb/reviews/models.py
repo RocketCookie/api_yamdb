@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 User = get_user_model()
 
@@ -32,14 +33,14 @@ class Category(models.Model):
 
 class Title(models.Model):
     """Модель БД для произведений"""
-    name = models.CharField('Нименование', max_length=256)
+    name = models.CharField('Наименование', max_length=256)
     year = models.IntegerField('Год издания')
     genre = models.ManyToManyField(Genre, through='GenreTitle')
     category = models.ForeignKey(Category,
-                                 on_delete=models.SET_NULL,
-                                 related_name='title', blank=False, null=True)
+        on_delete=models.SET_NULL,
+        related_name='title', blank=False, null=True)
     descriptions = models.TextField('Описание')
-
+    
     def __str__(self):
         return self.name
 
@@ -54,7 +55,7 @@ class GenreTitle(models.Model):
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.ganre} {self.title}'
+        return f'{self.genre} {self.title}'
 
 
 class Review(models.Model):
@@ -71,7 +72,15 @@ class Review(models.Model):
         verbose_name='Произведение'
     )
     text = models.TextField(verbose_name='Текст')
-    score = models.IntegerField(verbose_name='Оценка')
+    score = models.IntegerField(
+        verbose_name='Оценка',
+        validators=[
+            MinValueValidator(
+                1, message='Введите число от 1 до 10'),
+            MaxValueValidator(
+                10, message='Введите число от 1 до 10'),
+        ]
+    )
     pub_date = models.DateTimeField(
         auto_now_add=True,
         db_index=True,

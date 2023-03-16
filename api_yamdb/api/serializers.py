@@ -16,6 +16,7 @@ class TitleSerializer(serializers.ModelSerializer):
     #                                      slug_field='slug')
     category = serializers.SlugRelatedField(queryset=Category.objects.all(),
                                             slug_field='slug')
+    # rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
@@ -51,11 +52,6 @@ class ReviewSerializer(serializers.ModelSerializer):
                 fields=('author', 'title')
             )
         ]
-
-    def validate_score(self, value):
-        if not (1 <= value <= 10):
-            raise serializers.ValidationError('Введите число от 1 до 10!')
-        return value
 
 
 class CommentSerializer(serializers.ModelSerializer):
