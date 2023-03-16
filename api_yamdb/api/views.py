@@ -1,32 +1,19 @@
-
-
-from rest_framework import viewsets, mixins
-from reviews.models import Title, Review, Genre, Category
-from .serializers import (TitleSerializer, CommentSerializer,
-                          ReviewSerializer, GenreSerializer,
-                          CategorySerializer)
-from .permissions import AuthorOrSuperUserOrAdminOrReadOnly
-from rest_framework.pagination import LimitOffsetPagination
-from django.shortcuts import get_object_or_404
-from rest_framework import filters
-
-
-
-
 # from rest_framework.pagination import LimitOffsetPagination
 # from rest_framework import filters
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
-from rest_framework import mixins, status, viewsets
+from rest_framework import filters, mixins, status, viewsets
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .permissions import AuthorOrSuperUserOrAdminOrReadOnly
-from .serializers import (CommentSerializer, UserCreateSerializer,
-                          ReviewSerializer, TitleSerializer)
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer, TitleSerializer,
+                          UserCreateSerializer)
 from .utilities import send_confirm_code
-from reviews.models import Review, Title, User
+from reviews.models import Category, Genre, Review, Title, User
 
 
 class UserCreateView(APIView):
@@ -43,6 +30,8 @@ class UserCreateView(APIView):
             send_confirm_code(email, confirm_code)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class GenreViewSet(mixins.ListModelMixin,
                    mixins.CreateModelMixin,
                    mixins.DestroyModelMixin,
@@ -67,7 +56,6 @@ class CategoryViewSet(mixins.ListModelMixin,
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     pagination_class = LimitOffsetPagination
-
 
 
 class TitleViewSet(viewsets.ModelViewSet):

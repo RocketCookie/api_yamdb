@@ -1,16 +1,14 @@
 from datetime import datetime
+
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.validators import UniqueTogetherValidator
 
-
-from reviews.models import Category, Comment, Review, Title, Genre, Category, User
-
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 current_year = datetime.now().year
 CHAR_LEN = 256
-
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -25,6 +23,7 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = '__all__'
+
 
 class UserCreateSerializer(serializers.ModelSerializer):
 
