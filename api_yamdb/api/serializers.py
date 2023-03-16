@@ -53,7 +53,7 @@ class TitleSerializer(serializers.ModelSerializer):
         return year
 
     def validate_name(self, name):
-        if len(name) > 5:
+        if len(name) > CHAR_LEN:
             raise ValidationError("Количество символов в названии не должно"
                                   "превышать 256 символов",
                                   code=HTTP_400_BAD_REQUEST)
