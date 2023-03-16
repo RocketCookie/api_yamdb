@@ -2,11 +2,12 @@ from django.contrib.auth import get_user_model
 from django.db import models
 
 User = get_user_model()
+CHAR_LEN = 256
 
 
 class Genre(models.Model):
     """Модель БД для жанров"""
-    name = models.CharField('Наименование', max_length=256)
+    name = models.CharField('Наименование', max_length=CHAR_LEN)
     slug = models.SlugField('Слаг', unique=True)
 
     def __str__(self):
@@ -19,7 +20,7 @@ class Genre(models.Model):
 
 class Category(models.Model):
     """Модель БД для категорий"""
-    name = models.CharField('Наименование', max_length=256)
+    name = models.CharField('Наименование', max_length=CHAR_LEN)
     slug = models.SlugField('Слаг', unique=True)
 
     def __str__(self):
@@ -32,7 +33,7 @@ class Category(models.Model):
 
 class Title(models.Model):
     """Модель БД для произведений"""
-    name = models.CharField('Нименование', max_length=256)
+    name = models.CharField('Нименование', max_length=CHAR_LEN)
     year = models.IntegerField('Год издания')
     genre = models.ManyToManyField(Genre, through='GenreTitle')
     category = models.ForeignKey(Category,
