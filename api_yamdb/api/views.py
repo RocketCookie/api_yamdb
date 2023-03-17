@@ -7,12 +7,14 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import AccessToken
 
 # from rest_framework.permissions import (IsAdminUser)
 from .permissions import AuthorOrSuperUserOrAdminOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
-                          UserCreateSerializer)
+                          UserCreateSerializer, UserSendTokenSerializer,
+                          UserSerializer)
 from .utilities import send_confirm_code
 from reviews.models import Category, Genre, Review, Title, User
 
@@ -31,6 +33,28 @@ class UserCreateView(APIView):
             send_confirm_code(email, confirm_code)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserSendTokenView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        serializer = UserSendTokenSerializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data.get('username')
+            user = get_object_or_404(User, username=username)
+            confirmation_code = serializer.validated_data.get(
+                'confirmation_code')
+            if not default_token_generator.check_token(user, confirmation_code):
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            token = AccessToken.for_user(user)
+            return Response({'token': str(token)}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
 
 class GenreViewSet(mixins.ListModelMixin,
