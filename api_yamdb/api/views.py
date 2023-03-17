@@ -97,7 +97,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (AllowAny,)#(AuthorOrSuperUserOrAdminOrReadOnly,)
+    permission_classes = (AllowAny,)  # (AuthorOrSuperUserOrAdminOrReadOnly,)
     pagination_class = LimitOffsetPagination
 
     def get_title(self):
@@ -116,7 +116,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (AllowAny,)#(AuthorOrSuperUserOrAdminOrReadOnly,)
+    permission_classes = (AllowAny,)  # (AuthorOrSuperUserOrAdminOrReadOnly,)
     pagination_class = LimitOffsetPagination
 
     def get_review(self):
