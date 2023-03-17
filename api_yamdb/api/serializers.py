@@ -38,6 +38,23 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return username
 
 
+class UserSendTokenSerializer(serializers.ModelSerializer):
+
+    username = serializers.CharField()
+    confirmation_code = serializers.CharField()
+
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code')
+
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = '__all__'
+
+
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title"""
     genre = serializers.SlugRelatedField(many=True,
