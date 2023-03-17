@@ -1,6 +1,5 @@
 # from rest_framework import filters
 from django.contrib.auth.tokens import default_token_generator
-from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
@@ -44,6 +43,7 @@ class GenreViewSet(mixins.ListModelMixin,
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     pagination_class = LimitOffsetPagination
+    permission_classes = (AllowAny,)
 
 
 class CategoryViewSet(mixins.ListModelMixin,
@@ -57,6 +57,7 @@ class CategoryViewSet(mixins.ListModelMixin,
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     pagination_class = LimitOffsetPagination
+    permission_classes = (AllowAny,)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -67,11 +68,12 @@ class TitleViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name', 'category__slug', 'genre__slug', 'year')
     pagination_class = LimitOffsetPagination
+    permission_classes = (AllowAny,)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (AuthorOrSuperUserOrAdminOrReadOnly,)
+    permission_classes = (AllowAny,)#(AuthorOrSuperUserOrAdminOrReadOnly,)
     pagination_class = LimitOffsetPagination
 
     def get_title(self):
@@ -86,14 +88,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
             author=self.request.user,
             title=title
         )
-        rating = Review.objects.filter(title=title).aggregate(Avg('score'))
-        title.rating = rating.get('score__avg')
-        title.save(update_fields=["rating"])
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (AuthorOrSuperUserOrAdminOrReadOnly,)
+    permission_classes = (AllowAny,)#(AuthorOrSuperUserOrAdminOrReadOnly,)
     pagination_class = LimitOffsetPagination
 
     def get_review(self):

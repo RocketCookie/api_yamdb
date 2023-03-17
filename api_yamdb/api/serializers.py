@@ -6,6 +6,8 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
+from django.shortcuts import get_object_or_404
+from django.db.models import Avg
 
 current_year = datetime.now().year
 CHAR_LEN = 256
@@ -45,7 +47,7 @@ class TitleSerializer(serializers.ModelSerializer):
                                          slug_field='slug')
     category = serializers.SlugRelatedField(queryset=Category.objects.all(),
                                             slug_field='slug')
-    # rating = serializers.IntegerField(read_only=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
@@ -73,16 +75,22 @@ class TitleSerializer(serializers.ModelSerializer):
                                   "превышать 256 символов",
                                   code=HTTP_400_BAD_REQUEST)
         return name
-
+    
+    def get_rating(self, obj):
+        rating = Review.objects.filter(title=obj).aggregate(Avg('score'))
+        if rating.get('score__avg'):
+            return int(rating.get('score__avg'))
+        return 0
+        
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
-        slug_field='username'
+    slug_field='username'
     )
 
     class Meta:
-        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        fields = '__all__'
         model = Review
         validators = [
             UniqueTogetherValidator(
