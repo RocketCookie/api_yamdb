@@ -1,7 +1,7 @@
 from rest_framework import permissions
 
 
-class AuthorOrSuperUserOrAdminOrReadOnly(permissions.BasePermission):
+class AuthorOrModeratorOrAdminOrReadOnly(permissions.BasePermission):
     """
     Разрешает анонимному пользователю читать отзывы и комментарии,
     аутентифицированному - читать, публиковать отзывы и комментарии,
@@ -20,8 +20,20 @@ class AuthorOrSuperUserOrAdminOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         return (
-            request.user == obj.author
-            or request.user.is_staff
-            or request.user.is_superuser
-            # как указать модератора is_moderator?
-        )
+            obj.author == request.user
+            or request.user.is_authenticated
+            and (
+                request.user.is_staff
+                or request.user.is_superuser
+                or request.user.is_moderator
+                or request.user.is_admin))
+
+
+class AdminOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return (
+            request.method in permissions.SAFE_METHODS
+            or request.user.is_authenticated
+            and (
+                request.user.is_superuser
+                or request.user.is_admin))
