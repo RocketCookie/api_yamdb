@@ -3,13 +3,12 @@ from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
-# from rest_framework.permissions import (IsAdminUser)
-from .permissions import AuthorOrSuperUserOrAdminOrReadOnly
+from .permissions import AuthorOrModeratorOrAdminOrReadOnly, AdminOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
                           UserCreateSerializer, UserSendTokenSerializer,
@@ -67,7 +66,7 @@ class GenreViewSet(mixins.ListModelMixin,
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     pagination_class = LimitOffsetPagination
-    permission_classes = (AllowAny,)
+    permission_classes = (AdminOrReadOnly,)
 
 
 class CategoryViewSet(mixins.ListModelMixin,
@@ -81,7 +80,7 @@ class CategoryViewSet(mixins.ListModelMixin,
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     pagination_class = LimitOffsetPagination
-    permission_classes = (AllowAny,)
+    permission_classes = (AdminOrReadOnly,)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -92,12 +91,12 @@ class TitleViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name', 'category__slug', 'genre__slug', 'year')
     pagination_class = LimitOffsetPagination
-    permission_classes = (AllowAny,)
+    permission_classes = (AdminOrReadOnly,)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (AllowAny,)  # (AuthorOrSuperUserOrAdminOrReadOnly,)
+    permission_classes = (AuthorOrModeratorOrAdminOrReadOnly,)
     pagination_class = LimitOffsetPagination
 
     def get_title(self):
@@ -116,7 +115,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (AllowAny,)  # (AuthorOrSuperUserOrAdminOrReadOnly,)
+    permission_classes = (AuthorOrModeratorOrAdminOrReadOnly,)
     pagination_class = LimitOffsetPagination
 
     def get_review(self):
