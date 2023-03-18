@@ -7,6 +7,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
+from django.core.exceptions import ValidationError
 
 from .permissions import AuthorOrModeratorOrAdminOrReadOnly, AdminOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
@@ -99,17 +100,22 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = (AuthorOrModeratorOrAdminOrReadOnly,)
     pagination_class = LimitOffsetPagination
 
-    def get_title(self):
-        return get_object_or_404(Title, id=self.kwargs.get("title_id"))
-
     def get_queryset(self):
-        return self.get_title().reviews.all()
+        title = get_object_or_404(Title, pk=self.kwargs.get("title_id"))
+        return title.reviews.all()
+        
 
     def perform_create(self, serializer):
-        title = self.get_title()
+        if Review.objects.filter(
+            author=self.request.user,
+            title_id=self.kwargs.get("title_id")
+        ):
+            raise ValidationError(
+                "Можно оставить только один отзыв на произведение!"
+            )
         serializer.save(
             author=self.request.user,
-            title=title
+            title_id=self.kwargs.get('title_id')
         )
 
 
