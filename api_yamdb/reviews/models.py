@@ -43,7 +43,7 @@ class Title(models.Model):
         Category,
         on_delete=models.SET_NULL,
         related_name='title', blank=False, null=True)
-    descriptions = models.TextField('Описание')
+    description = models.TextField('Описание')
 
     def __str__(self):
         return self.name
