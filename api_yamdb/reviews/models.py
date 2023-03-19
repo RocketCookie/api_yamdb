@@ -88,6 +88,14 @@ class Review(models.Model):
         db_index=True,
         verbose_name='Дата добавления'
     )
+    
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=['author', 'title'],
+                name='unique_author_title'
+            ),
+        )
 
 
 class Comment(models.Model):
