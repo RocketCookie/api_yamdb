@@ -118,7 +118,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
 
         fields = ('id', 'text', 'author', 'score', 'pub_date')
-        
+
     def validate(self, data):
         """Запрещает пользователям оставлять повторные отзывы."""
         if not self.context.get('request').method == 'POST':
