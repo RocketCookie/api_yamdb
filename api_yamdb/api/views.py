@@ -1,19 +1,16 @@
 from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
-from django_filters.rest_framework import DjangoFilterBackend
 
 from .filters import TitleFilter
-
-from django.core.exceptions import ValidationError
-
-
-from .permissions import AuthorOrModeratorOrAdminOrReadOnly, AdminOrReadOnly
+from .permissions import AdminOrReadOnly, AuthorOrModeratorOrAdminOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
                           UserCreateSerializer, UserSendTokenSerializer,
@@ -105,7 +102,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get("title_id"))
         return title.reviews.all()
-        
 
     def perform_create(self, serializer):
         if Review.objects.filter(
