@@ -1,6 +1,7 @@
-# from rest_framework import filters
 from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
@@ -8,7 +9,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
-from .permissions import AuthorOrModeratorOrAdminOrReadOnly, AdminOrReadOnly
+from .filters import TitleFilter
+from .permissions import AdminOrReadOnly, AuthorOrModeratorOrAdminOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
                           UserCreateSerializer, UserSendTokenSerializer,
@@ -43,8 +45,10 @@ class UserSendTokenView(APIView):
             user = get_object_or_404(User, username=username)
             confirmation_code = serializer.validated_data.get(
                 'confirmation_code')
-            if not default_token_generator.check_token(user, confirmation_code):
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if not default_token_generator.check_token(user,
+                                                       confirmation_code):
+                return Response(serializer.errors,
+                                status=status.HTTP_400_BAD_REQUEST)
             token = AccessToken.for_user(user)
             return Response({'token': str(token)}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -60,12 +64,11 @@ class GenreViewSet(mixins.ListModelMixin,
                    mixins.DestroyModelMixin,
                    viewsets.GenericViewSet):
     """Вьюсет POST, GET, DELETE методы для Genre сериализатора"""
-    queryset = Genre.objects.all()
+    queryset = Genre.objects.all().order_by('id')
     serializer_class = GenreSerializer
     lookup_field = 'slug'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    pagination_class = LimitOffsetPagination
     permission_classes = (AdminOrReadOnly,)
 
 
@@ -74,23 +77,20 @@ class CategoryViewSet(mixins.ListModelMixin,
                       mixins.DestroyModelMixin,
                       viewsets.GenericViewSet):
     """Вьюсет POST, GET, DELETE методы для Category сериализатора"""
-    queryset = Category.objects.all()
+    queryset = Category.objects.all().order_by('id')
     serializer_class = CategorySerializer
     lookup_field = 'slug'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    pagination_class = LimitOffsetPagination
     permission_classes = (AdminOrReadOnly,)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет POST, GET, PATCH, DELETE методы для Title сериализатора"""
-    queryset = Title.objects.all()
+    queryset = Title.objects.all().order_by('id')
     serializer_class = TitleSerializer
-    pagination_class = LimitOffsetPagination
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name', 'category__slug', 'genre__slug', 'year')
-    pagination_class = LimitOffsetPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TitleFilter
     permission_classes = (AdminOrReadOnly,)
 
 
@@ -103,8 +103,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return get_object_or_404(Title, pk=self.kwargs.get('title_id'))
     
     def get_queryset(self):
-        return self.get_title().reviews.all()
-        
+        return self.get_title().reviews.all()        
+
     def perform_create(self, serializer):
         serializer.save(
             author=self.request.user,

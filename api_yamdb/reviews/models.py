@@ -36,7 +36,6 @@ class Title(models.Model):
     """Модель БД для произведений"""
 
     name = models.CharField('Наименование', max_length=256)
-
     year = models.IntegerField('Год издания')
     genre = models.ManyToManyField(Genre, through='GenreTitle')
     category = models.ForeignKey(

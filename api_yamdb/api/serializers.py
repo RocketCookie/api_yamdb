@@ -17,14 +17,14 @@ class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Genre"""
     class Meta:
         model = Genre
-        fields = '__all__'
+        fields = ('name', 'slug')
 
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор для модели Category"""
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ('name', 'slug')
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -76,8 +76,8 @@ class TitleSerializer(serializers.ModelSerializer):
         representation['genre'] = [{'name': genre.name, 'slug': genre.slug}
                                    for genre in genres]
         category = instance.category
-        representation['category'] = [{'name': category.name,
-                                       'slug': category.slug}]
+        representation['category'] = {'name': category.name,
+                                      'slug': category.slug}
         return representation
 
     def validate_year(self, year):
@@ -97,7 +97,7 @@ class TitleSerializer(serializers.ModelSerializer):
         rating = Review.objects.filter(title=obj).aggregate(Avg('score'))
         if rating.get('score__avg'):
             return int(rating.get('score__avg'))
-        return 0
+        return None
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -106,9 +106,10 @@ class ReviewSerializer(serializers.ModelSerializer):
         queryset=User.objects.all(),
         default=serializers.CurrentUserDefault(),
     )
-    
+
     class Meta:
         model = Review
+
         fields = ('id', 'text', 'author', 'score', 'pub_date')
         
     def validate(self, data):
@@ -122,6 +123,7 @@ class ReviewSerializer(serializers.ModelSerializer):
                 'Можно оставить только один отзыв на произведение!'
             )
         return data
+
 
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
