@@ -3,14 +3,16 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
 from .filters import TitleFilter
-from .permissions import AdminOrReadOnly, AuthorOrModeratorOrAdminOrReadOnly
+from .permissions import (AdminOnly, AdminOrReadOnly,
+                          AuthorOrModeratorOrAdminOrReadOnly)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
                           UserCreateSerializer, UserSendTokenSerializer,
@@ -26,8 +28,8 @@ class UserCreateView(APIView):
         serializer = UserCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            email = request.data.get('email')
-            username = request.data.get('username')
+            email = serializer.validated_data['email']
+            username = serializer.validated_data['username']
             user = User.objects.get(username=username)
             confirm_code = default_token_generator.make_token(user)
             send_confirm_code(email, confirm_code)
@@ -57,6 +59,24 @@ class UserSendTokenView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = (AdminOnly,)
+    lookup_field = 'username'
+    search_fields = ('username')
+    http_method_names = ['get', 'post', 'patch', 'delete']
+
+    @action(methods=['get', 'patch'],
+            detail=False,
+            url_path='me',
+            permission_classes=[IsAuthenticated],)
+    def me(self, request):
+        if request.method == 'GET':
+            serializer = UserSerializer(request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = UserSerializer(
+            request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(role=request.user.role)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class GenreViewSet(mixins.ListModelMixin,

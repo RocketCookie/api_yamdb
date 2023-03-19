@@ -54,7 +54,14 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ('username', 'email', 'first_name',
+                  'last_name', 'bio', 'role')
+
+    def validate_username(self, username):
+        if username == 'me':
+            raise ValidationError(
+                'Такой никнейм запрещён!')
+        return username
 
 
 class TitleSerializer(serializers.ModelSerializer):
