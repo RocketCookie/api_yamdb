@@ -36,14 +36,13 @@ class Title(models.Model):
     """Модель БД для произведений"""
 
     name = models.CharField('Наименование', max_length=256)
-
     year = models.IntegerField('Год издания')
     genre = models.ManyToManyField(Genre, through='GenreTitle')
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
         related_name='title', blank=False, null=True)
-    descriptions = models.TextField('Описание')
+    description = models.TextField('Описание')
 
     def __str__(self):
         return self.name
