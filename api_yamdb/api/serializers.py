@@ -1,12 +1,10 @@
 from datetime import datetime
 
 from django.db.models import Avg
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 from rest_framework.status import HTTP_400_BAD_REQUEST
-from rest_framework.validators import UniqueTogetherValidator
 
+from .validators import validate_username
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 current_year = datetime.now().year
@@ -28,22 +26,33 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор создания пользователя"""
+    username = serializers.CharField(
+        max_length=150, required=True, validators=(validate_username,))
 
     class Meta:
         model = User
         fields = ('email', 'username')
+        extra_kwargs = {'email': {'validators': []},
+                        'username': {'validators': []}}
 
-    def validate_username(self, username):
-        if username == 'me':
-            raise ValidationError(
-                'Такой никнейм запрещён!')
-        return username
+    def validate(self, data):
+        if User.objects.filter(username=data.get('username'),
+                               email=data.get('email')).exists():
+            return data
+        if User.objects.filter(username=data.get('username')):
+            raise serializers.ValidationError(
+                'Данный пользователь уже существует!')
+        if User.objects.filter(email=data.get('email')):
+            raise serializers.ValidationError(
+                'Данная почта уже существует!')
+        return data
 
 
 class UserSendTokenSerializer(serializers.ModelSerializer):
-
-    username = serializers.CharField()
-    confirmation_code = serializers.CharField()
+    """Сериализатор проверки кода подтверждения"""
+    username = serializers.CharField(max_length=150,)
+    confirmation_code = serializers.CharField(max_length=39,)
 
     class Meta:
         model = User
@@ -51,17 +60,11 @@ class UserSendTokenSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-
+    """Сериализатор для модели User"""
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
-
-    def validate_username(self, username):
-        if username == 'me':
-            raise ValidationError(
-                'Такой никнейм запрещён!')
-        return username
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -89,15 +92,17 @@ class TitleSerializer(serializers.ModelSerializer):
 
     def validate_year(self, year):
         if year > current_year:
-            raise ValidationError("Проверьте корректность года издания",
-                                  code=HTTP_400_BAD_REQUEST)
+            raise serializers.ValidationError(
+                "Проверьте корректность года издания",
+                code=HTTP_400_BAD_REQUEST)
         return year
 
     def validate_name(self, name):
         if len(name) > CHAR_LEN:
-            raise ValidationError("Количество символов в названии не должно"
-                                  "превышать 256 символов",
-                                  code=HTTP_400_BAD_REQUEST)
+            raise serializers.ValidationError(
+                "Количество символов в названии не должно"
+                "превышать 256 символов",
+                code=HTTP_400_BAD_REQUEST)
         return name
 
     def get_rating(self, obj):
@@ -108,6 +113,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Review"""
     author = serializers.SlugRelatedField(
         slug_field='username',
         queryset=User.objects.all(),
@@ -116,7 +122,6 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-
         fields = ('id', 'text', 'author', 'score', 'pub_date')
 
     def validate(self, data):
@@ -127,16 +132,15 @@ class ReviewSerializer(serializers.ModelSerializer):
         title_id = self.context.get('view').kwargs.get('title_id')
         if Review.objects.filter(author=author, title=title_id).exists():
             raise serializers.ValidationError(
-                'Можно оставить только один отзыв на произведение!'
-            )
+                'Можно оставить только один отзыв на произведение!')
         return data
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Comment"""
     author = serializers.SlugRelatedField(
         read_only=True,
-        slug_field='username'
-    )
+        slug_field='username')
 
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date')

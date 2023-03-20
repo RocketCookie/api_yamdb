@@ -1,5 +1,4 @@
 from django.contrib.auth.tokens import default_token_generator
-from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
@@ -22,22 +21,22 @@ from reviews.models import Category, Genre, Review, Title, User
 
 
 class UserCreateView(APIView):
+    """APIView создание пользователя"""
     permission_classes = (AllowAny,)
 
     def post(self, request):
         serializer = UserCreateSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            email = serializer.validated_data['email']
-            username = serializer.validated_data['username']
-            user = User.objects.get(username=username)
+            user, create = User.objects.get_or_create(
+                **serializer.validated_data)
             confirm_code = default_token_generator.make_token(user)
-            send_confirm_code(email, confirm_code)
+            send_confirm_code(user.email, confirm_code)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserSendTokenView(APIView):
+    """APIView POST методы для получение токена"""
     permission_classes = (AllowAny,)
 
     def post(self, request):
@@ -57,11 +56,13 @@ class UserSendTokenView(APIView):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    """ViewSet GET, POST, PATCH, DELETE  методы для профиля пользователя"""
+    queryset = User.objects.all().order_by('id')
     serializer_class = UserSerializer
     permission_classes = (AdminOnly,)
     lookup_field = 'username'
-    search_fields = ('username')
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     @action(methods=['get', 'patch'],
@@ -83,7 +84,7 @@ class GenreViewSet(mixins.ListModelMixin,
                    mixins.CreateModelMixin,
                    mixins.DestroyModelMixin,
                    viewsets.GenericViewSet):
-    """Вьюсет POST, GET, DELETE методы для Genre сериализатора"""
+    """ViewSet POST, GET, DELETE методы для Genre сериализатора"""
     queryset = Genre.objects.all().order_by('id')
     serializer_class = GenreSerializer
     lookup_field = 'slug'
@@ -96,7 +97,7 @@ class CategoryViewSet(mixins.ListModelMixin,
                       mixins.CreateModelMixin,
                       mixins.DestroyModelMixin,
                       viewsets.GenericViewSet):
-    """Вьюсет POST, GET, DELETE методы для Category сериализатора"""
+    """ViewSet POST, GET, DELETE методы для Category сериализатора"""
     queryset = Category.objects.all().order_by('id')
     serializer_class = CategorySerializer
     lookup_field = 'slug'
@@ -106,7 +107,7 @@ class CategoryViewSet(mixins.ListModelMixin,
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    """Вьюсет POST, GET, PATCH, DELETE методы для Title сериализатора"""
+    """ViewSet для Title сериализатора"""
     queryset = Title.objects.all().order_by('id')
     serializer_class = TitleSerializer
     filter_backends = [DjangoFilterBackend]
@@ -115,6 +116,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    """ViewSet для Review сериализатора"""
     serializer_class = ReviewSerializer
     permission_classes = (AuthorOrModeratorOrAdminOrReadOnly,)
     pagination_class = LimitOffsetPagination
@@ -132,6 +134,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    """ViewSet для Comment сериализатора"""
     serializer_class = CommentSerializer
     permission_classes = (AuthorOrModeratorOrAdminOrReadOnly,)
     pagination_class = LimitOffsetPagination
@@ -145,5 +148,4 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(
             author=self.request.user,
-            review=self.get_review()
-        )
+            review=self.get_review())

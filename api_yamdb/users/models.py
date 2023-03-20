@@ -1,29 +1,23 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator
 from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+from .validators import validate_username
 
 
 class User(AbstractUser):
-    USER = 'user'
-    MODERATOR = 'moderator'
-    ADMIN = 'admin'
 
-    USER_ROLE_CHOICES = (
-        (USER, 'user'),
-        (MODERATOR, 'moderator'),
-        (ADMIN, 'admin'),
-    )
+    class Roles(models.TextChoices):
+        USER = 'user', _('Пользователь')
+        MODERATOR = 'moderator', _('Модератор')
+        ADMIN = 'admin', _('Администратор')
 
     username = models.CharField(
         verbose_name='Никнейм',
         max_length=150,
         unique=True,
-        validators=[
-            RegexValidator(
-                regex='^[a-zA-Z0-9@.+_-]*$',
-                message='Username только буквы, цифры и @/./+/-/_',
-                code='invalid_username')])
+        validators=(validate_username,))
 
     email = models.EmailField(
         verbose_name='Электронная почта',
@@ -46,8 +40,8 @@ class User(AbstractUser):
 
     role = models.CharField(
         verbose_name='Права доступа',
-        default=USER,
-        choices=USER_ROLE_CHOICES,
+        default=Roles.USER,
+        choices=Roles.choices,
         max_length=25)
 
     def __str__(self):
@@ -58,13 +52,11 @@ class User(AbstractUser):
         verbose_name_plural = 'Пользователи'
 
     @property
-    def is_user(self):
-        return self.role == self.USER
-
-    @property
     def is_moderator(self):
-        return self.role == self.MODERATOR
+        return self.role == self.Roles.MODERATOR
 
     @property
     def is_admin(self):
-        return self.role == self.ADMIN or self.is_superuser or self.is_staff
+        return (self.role == self.Roles.ADMIN
+                or self.is_superuser
+                or self.is_staff)
