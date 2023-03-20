@@ -87,7 +87,7 @@ class Review(models.Model):
         db_index=True,
         verbose_name='Дата добавления'
     )
-    
+
     class Meta:
         constraints = (
             models.UniqueConstraint(
