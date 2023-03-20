@@ -148,3 +148,6 @@ dmypy.json
 # папки со статикой и медиа
 media/
 
+.isort.cfg
+
+sent_emails/
