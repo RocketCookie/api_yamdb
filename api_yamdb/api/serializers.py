@@ -59,7 +59,7 @@ class UserSendTokenSerializer(serializers.ModelSerializer):
         fields = ('username', 'confirmation_code')
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserReadSerializer(serializers.ModelSerializer):
     """Сериализатор для модели User"""
     class Meta:
         model = User
