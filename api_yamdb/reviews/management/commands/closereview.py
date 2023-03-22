@@ -12,95 +12,72 @@ from users.models import User
 def process_file(name: str):
     return csv.reader(open(os.path.join(settings.BASE_DIR,
                                         'static/data/',
-                                        name), 'r', encoding='utf-8'),
-                      delimiter=',')
+                                        name),
+                           'r', encoding='utf-8'), delimiter=',')
 
 
 class Command(BaseCommand):
+    mapping_data = {'users': {
+                    'model': User,
+                    'fields': ['id', 'username', 'email', 'role', 'bio',
+                               'first_name', 'last_name']},
+                    'category': {
+                    'model': Category,
+                    'fields': ['name', 'slug']},
+                    'genre': {
+                    'model': Genre,
+                    'fields': ['name', 'slug']}
+                    }
 
     def handle(self, *args, **options):
-
-        csv = process_file('users.csv')
-        next(csv, None)
-        for row in csv:
-            obj, created = User.objects.get_or_create(id=row[0],
-                                                      username=row[1],
-                                                      email=row[2],
-                                                      role=row[3],
-                                                      bio=row[4],
-                                                      first_name=row[5],
-                                                      last_name=row[6])
-        self.stdout.write(self.style.SUCCESS('Данные о юзерах'
-                                             'успешно загружены'))
-
-        csv = process_file('category.csv')
-        next(csv, None)
-        for row in csv:
-            obj, created = Category.objects.get_or_create(name=row[1],
-                                                          slug=row[2])
-        self.stdout.write(self.style.SUCCESS('Данные о категориях'
-                                             'успешно загружены'))
-
-        csv = process_file('genre.csv')
-        next(csv, None)
-        for row in csv:
-            obj, created = Genre.objects.get_or_create(name=row[1],
-                                                       slug=row[2])
-        self.stdout.write(self.style.SUCCESS('Данные о жанрах'
-                                             'успешно загружены'))
+        for data_file, data_config in self.mapping_data.items():
+            csv = process_file(f'{data_file}.csv')
+            next(csv, None)
+            for row in csv:
+                data = {field_name: row[index]
+                        for index, field_name in enumerate(data_config
+                        ['fields'])}
+                obj, created = data_config['model'].objects.get_or_create(
+                    **data)
+            self.stdout.write(self.style.SUCCESS(f'Данные {data_file}'
+                                                 ' успешно загружены'))
 
         csv = process_file('titles.csv')
         next(csv, None)
         for row in csv:
-            obj, created = (Title
-                            .objects
-                            .get_or_create(name=row[1],
-                                           year=row[2],
-                                           category=get_object_or_404(Category,
-                                                                      id=row[3]
-                                                                      )))
-        self.stdout.write(self.style.SUCCESS('Данные о произведениях'
-                                             'успешно загружены'))
-
+            obj, created = (Title.objects.get_or_create(
+                            name=row[1],
+                            year=row[2],
+                            category=get_object_or_404(
+                                Category, id=row[3])))
+        self.stdout.write(self.style.SUCCESS('Данные title'
+                                             ' успешно загружены'))
         csv = process_file('genre_title.csv')
         next(csv, None)
         for row in csv:
-            obj, created = (GenreTitle
-                            .objects
-                            .get_or_create(title=get_object_or_404(Title,
-                                                                   id=row[1]),
-                                           genre=get_object_or_404(Genre,
-                                                                   id=row[2])))
-        self.stdout.write(self.style.SUCCESS('Данные о жанрах произведений'
-                                             'успешно загружены'))
-
+            obj, created = (GenreTitle.objects.get_or_create(
+                            title=get_object_or_404(Title, id=row[1]),
+                            genre=get_object_or_404(Genre, id=row[2])))
+        self.stdout.write(self.style.SUCCESS('Данные genre_title'
+                                             ' успешно загружены'))
         csv = process_file('review.csv')
         next(csv, None)
         for row in csv:
-            obj, created = (Review
-                            .objects
-                            .get_or_create(id=row[0],
-                                           title=get_object_or_404(Title,
-                                                                   id=row[1]),
-                                           text=row[2],
-                                           author=get_object_or_404(User,
-                                                                    id=row[3]),
-                                           score=row[4],
-                                           pub_date=row[5]))
-        self.stdout.write(self.style.SUCCESS('Данные о отзывах'
-                                             'успешно загружены'))
-
+            obj, created = (Review.objects.get_or_create(id=row[0],
+                            title=get_object_or_404(Title, id=row[1]),
+                            text=row[2], author=get_object_or_404(User,
+                            id=row[3]), score=row[4],
+                            pub_date=row[5]))
+        self.stdout.write(self.style.SUCCESS('Данные review'
+                                             ' успешно загружены'))
         csv = process_file('comments.csv')
         next(csv, None)
         for row in csv:
-            obj, created = (Comment
-                            .objects
-                            .get_or_create(id=row[0],
-                                           review=get_object_or_404(Review,
-                                                                    id=row[1]),
-                                           text=row[2],
-                                           author=get_object_or_404(User,
-                                                                    id=row[3]),
-                                           pub_date=row[4]))
-        self.stdout.write(self.style.SUCCESS('Данные о комментариях'
-                                             'успешно загружены'))
+            obj, created = (Comment.objects.get_or_create(id=row[0],
+                            review=get_object_or_404(Review,
+                                                     id=row[1]),
+                            text=row[2], author=get_object_or_404(User,
+                                                                  id=row[3]),
+                            pub_date=row[4]))
+        self.stdout.write(self.style.SUCCESS('Данные comments'
+                                             ' успешно загружены'))
