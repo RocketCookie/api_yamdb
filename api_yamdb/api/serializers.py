@@ -74,7 +74,7 @@ class TitleSerializer(serializers.ModelSerializer):
                                          slug_field='slug')
     category = serializers.SlugRelatedField(queryset=Category.objects.all(),
                                             slug_field='slug')
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
@@ -105,12 +105,6 @@ class TitleSerializer(serializers.ModelSerializer):
                 code=HTTP_400_BAD_REQUEST)
         return name
 
-    def get_rating(self, obj):
-        rating = Review.objects.filter(title=obj).aggregate(Avg('score'))
-        if rating.get('score__avg'):
-            return int(rating.get('score__avg'))
-        return None
-
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Review"""
@@ -122,7 +116,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        exclude = ('title',)
 
     def validate(self, data):
         """Запрещает пользователям оставлять повторные отзывы."""
@@ -143,5 +137,5 @@ class CommentSerializer(serializers.ModelSerializer):
         slug_field='username')
 
     class Meta:
-        fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
+        exclude = ('review',)
