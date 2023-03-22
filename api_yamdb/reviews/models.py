@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db.models import Avg
 from django.db import models
+from django.db.models import Avg
 
 User = get_user_model()
 CHAR_LEN = 256
@@ -46,18 +46,18 @@ class Title(models.Model):
         on_delete=models.SET_NULL,
         related_name='title', blank=False, null=True)
     description = models.TextField('Описание')
-    
+
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
-        
+
     @property
     def rating(self):
-        rating = Review.objects.filter(title=self.pk).aggregate(Avg('score')) 
-        if rating.get('score__avg'): 
-            return int(rating.get('score__avg')) 
-        return None 
-    
+        rating = Review.objects.filter(title=self.pk).aggregate(Avg('score'))
+        if rating.get('score__avg'):
+            return int(rating.get('score__avg'))
+        return None
+
     def __str__(self):
         return self.name
 
@@ -88,8 +88,10 @@ class Review(models.Model):
     score = models.IntegerField(
         verbose_name='Оценка',
         validators=[
-            MinValueValidator(MIN_SCORE, message=f'Оценка должна быть не меньше {MIN_SCORE}!'),
-            MaxValueValidator(MAX_SCORE, message=f'Оценка должна быть не больше {MAX_SCORE}!'),
+            MinValueValidator(
+                MIN_SCORE, message=f'Оценка должна быть не меньше {MIN_SCORE}!'),
+            MaxValueValidator(
+                MAX_SCORE, message=f'Оценка должна быть не больше {MAX_SCORE}!'),
         ]
     )
     pub_date = models.DateTimeField(
@@ -108,7 +110,7 @@ class Review(models.Model):
                 name='unique_author_title'
             ),
         )
-        
+
 
 class Comment(models.Model):
     author = models.ForeignKey(
@@ -129,7 +131,7 @@ class Comment(models.Model):
         db_index=True,
         verbose_name='Дата добавления'
     )
-    
+
     class Meta:
         verbose_name = 'Комментарий к отзыву'
         verbose_name_plural = 'Комментарии к отзыву'
