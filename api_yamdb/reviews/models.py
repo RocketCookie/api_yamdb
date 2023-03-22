@@ -3,8 +3,13 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from .validators import validate_year
 
+from django.db.models import Avg
+
+
 User = get_user_model()
 CHAR_LEN = 256
+MIN_SCORE = 1
+MAX_SCORE = 10
 
 
 class Genre(models.Model):
@@ -49,9 +54,21 @@ class Title(models.Model):
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
-
+    
     def __str__(self):
         return self.name
+
+
+
+    @property
+    def rating(self):
+        rating = Review.objects.filter(title=self.pk).aggregate(Avg('score'))
+        if rating.get('score__avg'):
+            return int(rating.get('score__avg'))
+        return None
+
+
+    
 
 
 class GenreTitle(models.Model):
@@ -80,8 +97,10 @@ class Review(models.Model):
     score = models.IntegerField(
         verbose_name='Оценка',
         validators=[
-            MinValueValidator(1),
-            MaxValueValidator(10),
+            MinValueValidator(
+                MIN_SCORE, message=f'Оценка должна быть не меньше {MIN_SCORE}!'),
+            MaxValueValidator(
+                MAX_SCORE, message=f'Оценка должна быть не больше {MAX_SCORE}!'),
         ]
     )
     pub_date = models.DateTimeField(
@@ -91,6 +110,9 @@ class Review(models.Model):
     )
 
     class Meta:
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
+        ordering = ['-pub_date']
         constraints = (
             models.UniqueConstraint(
                 fields=['author', 'title'],
@@ -118,3 +140,8 @@ class Comment(models.Model):
         db_index=True,
         verbose_name='Дата добавления'
     )
+
+    class Meta:
+        verbose_name = 'Комментарий к отзыву'
+        verbose_name_plural = 'Комментарии к отзыву'
+        ordering = ['-pub_date']

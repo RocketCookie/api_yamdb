@@ -52,7 +52,7 @@ class UserSendTokenSerializer(serializers.ModelSerializer):
         fields = ('username', 'confirmation_code')
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserReadSerializer(serializers.ModelSerializer):
     """Сериализатор для модели User"""
     class Meta:
         model = User
@@ -70,7 +70,7 @@ class TitleSerializer(serializers.ModelSerializer):
                                          slug_field='slug')
     category = serializers.SlugRelatedField(queryset=Category.objects.all(),
                                             slug_field='slug')
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
@@ -103,7 +103,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        exclude = ('title',)
 
     def validate(self, data):
         """Запрещает пользователям оставлять повторные отзывы."""
@@ -124,5 +124,5 @@ class CommentSerializer(serializers.ModelSerializer):
         slug_field='username')
 
     class Meta:
-        fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
+        exclude = ('review',)
