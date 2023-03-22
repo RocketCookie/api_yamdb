@@ -1,7 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from .validators import validate_year
+
 from django.db.models import Avg
+
 
 User = get_user_model()
 CHAR_LEN = 256
@@ -14,12 +17,12 @@ class Genre(models.Model):
     name = models.CharField('Наименование', max_length=CHAR_LEN)
     slug = models.SlugField('Слаг', unique=True)
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
+
+    def __str__(self):
+        return self.name
 
 
 class Category(models.Model):
@@ -27,19 +30,20 @@ class Category(models.Model):
     name = models.CharField('Наименование', max_length=CHAR_LEN)
     slug = models.SlugField('Слаг', unique=True)
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
+
+    def __str__(self):
+        return self.name
 
 
 class Title(models.Model):
     """Модель БД для произведений"""
 
     name = models.CharField('Наименование', max_length=256)
-    year = models.IntegerField('Год издания')
+    year = models.IntegerField('Год издания', validators=[validate_year],
+                               db_index=True)
     genre = models.ManyToManyField(Genre, through='GenreTitle')
     category = models.ForeignKey(
         Category,
@@ -50,6 +54,11 @@ class Title(models.Model):
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
+    
+    def __str__(self):
+        return self.name
+
+
 
     @property
     def rating(self):
@@ -58,8 +67,8 @@ class Title(models.Model):
             return int(rating.get('score__avg'))
         return None
 
-    def __str__(self):
-        return self.name
+
+    
 
 
 class GenreTitle(models.Model):

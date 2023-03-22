@@ -1,28 +1,21 @@
-from datetime import datetime
-
 from django.db.models import Avg
 from rest_framework import serializers
-from rest_framework.status import HTTP_400_BAD_REQUEST
-
-from .validators import validate_username
+from .validators import validate_username, validate_name, validate_year
 from reviews.models import Category, Comment, Genre, Review, Title, User
-
-current_year = datetime.now().year
-CHAR_LEN = 256
 
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Genre"""
     class Meta:
         model = Genre
-        fields = ('name', 'slug')
+        exclude = ('id',)
 
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор для модели Category"""
     class Meta:
         model = Category
-        fields = ('name', 'slug')
+        exclude = ('id',)
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -69,6 +62,9 @@ class UserReadSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title"""
+    name = serializers.CharField(max_length=256, required=True,
+                                 validators=(validate_name,))
+    year = serializers.IntegerField(required=True, validators=(validate_year,))
     genre = serializers.SlugRelatedField(many=True,
                                          queryset=Genre.objects.all(),
                                          slug_field='slug')
@@ -90,20 +86,11 @@ class TitleSerializer(serializers.ModelSerializer):
                                       'slug': category.slug}
         return representation
 
-    def validate_year(self, year):
-        if year > current_year:
-            raise serializers.ValidationError(
-                "Проверьте корректность года издания",
-                code=HTTP_400_BAD_REQUEST)
-        return year
-
-    def validate_name(self, name):
-        if len(name) > CHAR_LEN:
-            raise serializers.ValidationError(
-                "Количество символов в названии не должно"
-                "превышать 256 символов",
-                code=HTTP_400_BAD_REQUEST)
-        return name
+    def get_rating(self, obj):
+        rating = Review.objects.filter(title=obj).aggregate(Avg('score'))
+        if rating.get('score__avg'):
+            return int(rating.get('score__avg'))
+        return None
 
 
 class ReviewSerializer(serializers.ModelSerializer):
