@@ -1,10 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from .validators import validate_year
-
 from django.db.models import Avg
 
+from .validators import validate_year
 
 User = get_user_model()
 CHAR_LEN = 256
@@ -54,11 +53,9 @@ class Title(models.Model):
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
-    
+
     def __str__(self):
         return self.name
-
-
 
     @property
     def rating(self):
@@ -66,9 +63,6 @@ class Title(models.Model):
         if rating.get('score__avg'):
             return int(rating.get('score__avg'))
         return None
-
-
-    
 
 
 class GenreTitle(models.Model):

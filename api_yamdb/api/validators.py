@@ -1,9 +1,10 @@
-from django.utils import timezone
-from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
+from django.utils import timezone
+from rest_framework import serializers
 from rest_framework.status import HTTP_400_BAD_REQUEST
-current_year = timezone.now().year
+
+CURRENT_YEAR = timezone.now().year
 CHAR_LEN = 256
 
 
@@ -31,7 +32,7 @@ def validate_name(name):
 
 def validate_year(year):
     """Валидация года издания"""
-    if year > current_year:
+    if year > CURRENT_YEAR:
         raise serializers.ValidationError(
             "Проверьте корректность года издания",
             code=HTTP_400_BAD_REQUEST)

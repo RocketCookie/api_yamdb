@@ -1,18 +1,19 @@
 import csv
 import os
+
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.shortcuts import get_object_or_404
+
 from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
 from users.models import User
-
 
 
 def process_file(name: str):
     return csv.reader(open(os.path.join(settings.BASE_DIR,
                                         'static/data/',
-                                        name), 'r', encoding='utf-8'),
-                      delimiter=',')
+                                        name),
+                           'r', encoding='utf-8'), delimiter=',')
 
 
 class Command(BaseCommand):
@@ -36,7 +37,8 @@ class Command(BaseCommand):
                 data = {field_name: row[index]
                         for index, field_name in enumerate(data_config
                         ['fields'])}
-                obj, created = data_config['model'].objects.get_or_create(**data)
+                obj, created = data_config['model'].objects.get_or_create(
+                    **data)
             self.stdout.write(self.style.SUCCESS(f'Данные {data_file}'
                                                  ' успешно загружены'))
 
