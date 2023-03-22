@@ -92,9 +92,11 @@ class Review(models.Model):
         verbose_name='Оценка',
         validators=[
             MinValueValidator(
-                MIN_SCORE, message=f'Оценка должна быть не меньше {MIN_SCORE}!'),
+                MIN_SCORE,
+                message=f'Оценка должна быть не меньше {MIN_SCORE}!'),
             MaxValueValidator(
-                MAX_SCORE, message=f'Оценка должна быть не больше {MAX_SCORE}!'),
+                MAX_SCORE,
+                message=f'Оценка должна быть не больше {MAX_SCORE}!'),
         ]
     )
     pub_date = models.DateTimeField(
