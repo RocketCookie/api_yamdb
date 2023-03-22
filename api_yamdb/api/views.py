@@ -15,7 +15,7 @@ from .permissions import (AdminOnly, AdminOrReadOnly,
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
                           UserCreateSerializer, UserSendTokenSerializer,
-                          UserSerializer)
+                          UserReadSerializer)
 from .utilities import send_confirm_code
 from reviews.models import Category, Genre, Review, Title, User
 
@@ -58,7 +58,7 @@ class UserSendTokenView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     """ViewSet GET, POST, PATCH, DELETE  методы для профиля пользователя"""
     queryset = User.objects.all().order_by('id')
-    serializer_class = UserSerializer
+    serializer_class = UserReadSerializer
     permission_classes = (AdminOnly,)
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
@@ -71,9 +71,9 @@ class UserViewSet(viewsets.ModelViewSet):
             permission_classes=[IsAuthenticated],)
     def me(self, request):
         if request.method == 'GET':
-            serializer = UserSerializer(request.user)
+            serializer = UserReadSerializer(request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        serializer = UserSerializer(
+        serializer = UserReadSerializer(
             request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save(role=request.user.role)
