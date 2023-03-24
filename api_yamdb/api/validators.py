@@ -8,19 +8,18 @@ CURRENT_YEAR = timezone.now().year
 CHAR_LEN = 256
 
 
-def validate_username(username):
+def validate_username(username: str):
     """Валидация имени пользователя"""
     if username == 'me':
-        raise ValidationError("Username 'me' is not allowed.")
+        raise ValidationError('Имя пользователя «me» не разрешено.')
     regex_validator = RegexValidator(
         regex=r'^[\w.@+-]+\Z',
         message='Только буквы, цифры и @/./+/-/_.',
-        code='invalid_username'
-    )
+        code='invalid_username')
     regex_validator(username)
 
 
-def validate_name(name):
+def validate_name(name: str) -> str:
     """Валидация длины названия произведения"""
     if len(name) > CHAR_LEN:
         raise serializers.ValidationError(
@@ -30,7 +29,7 @@ def validate_name(name):
     return name
 
 
-def validate_year(year):
+def validate_year(year: int) -> int:
     """Валидация года издания"""
     if year > CURRENT_YEAR:
         raise serializers.ValidationError(
