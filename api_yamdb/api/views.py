@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
 from .filters import TitleFilter
+from .mixins import ListCreateDestroyViewSet
 from .permissions import (AdminOnly, AdminOrReadOnly,
                           AuthorOrModeratorOrAdminOrReadOnly)
 from .serializers import (CategorySerializer, CommentSerializer,
@@ -80,10 +81,7 @@ class UserReadViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class GenreViewSet(mixins.ListModelMixin,
-                   mixins.CreateModelMixin,
-                   mixins.DestroyModelMixin,
-                   viewsets.GenericViewSet):
+class GenreViewSet(ListCreateDestroyViewSet):
     """ViewSet POST, GET, DELETE методы для Genre сериализатора"""
     queryset = Genre.objects.all().order_by('id')
     serializer_class = GenreSerializer
@@ -93,10 +91,7 @@ class GenreViewSet(mixins.ListModelMixin,
     permission_classes = (AdminOrReadOnly,)
 
 
-class CategoryViewSet(mixins.ListModelMixin,
-                      mixins.CreateModelMixin,
-                      mixins.DestroyModelMixin,
-                      viewsets.GenericViewSet):
+class CategoryViewSet(ListCreateDestroyViewSet):
     """ViewSet POST, GET, DELETE методы для Category сериализатора"""
     queryset = Category.objects.all().order_by('id')
     serializer_class = CategorySerializer
