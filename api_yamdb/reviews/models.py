@@ -60,10 +60,8 @@ class Title(models.Model):
     @property
     def rating(self):
         rating = Review.objects.filter(title=self.pk).aggregate(Avg('score'))
-        if rating.get('score__avg'):
-            return int(rating.get('score__avg'))
-        return None
-
+        return rating.get('score__avg')
+        
 
 class GenreTitle(models.Model):
     """Промежуточная модель БД для жанров"""
