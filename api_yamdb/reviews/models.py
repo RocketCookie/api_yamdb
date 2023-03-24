@@ -20,7 +20,7 @@ class Genre(models.Model):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -33,7 +33,7 @@ class Category(models.Model):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -54,15 +54,13 @@ class Title(models.Model):
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
     @property
     def rating(self):
         rating = Review.objects.filter(title=self.pk).aggregate(Avg('score'))
-        if rating.get('score__avg'):
-            return int(rating.get('score__avg'))
-        return None
+        return rating.get('score__avg')
 
 
 class GenreTitle(models.Model):
@@ -70,7 +68,7 @@ class GenreTitle(models.Model):
     genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.genre} {self.title}'
 
 

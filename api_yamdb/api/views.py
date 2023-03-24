@@ -1,7 +1,7 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, status, viewsets
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -10,12 +10,13 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
 from .filters import TitleFilter
+from .mixins import ListCreateDestroyViewSet
 from .permissions import (AdminOnly, AdminOrReadOnly,
                           AuthorOrModeratorOrAdminOrReadOnly)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
-                          UserCreateSerializer, UserSendTokenSerializer,
-                          UserReadSerializer)
+                          UserCreateSerializer, UserReadSerializer,
+                          UserSendTokenSerializer)
 from .utilities import send_confirm_code
 from reviews.models import Category, Genre, Review, Title, User
 
@@ -27,7 +28,7 @@ class UserCreateView(APIView):
     def post(self, request):
         serializer = UserCreateSerializer(data=request.data)
         if serializer.is_valid():
-            user, create = User.objects.get_or_create(
+            user, _ = User.objects.get_or_create(
                 **serializer.validated_data)
             confirm_code = default_token_generator.make_token(user)
             send_confirm_code(user.email, confirm_code)
@@ -55,7 +56,7 @@ class UserSendTokenView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserReadViewSet(viewsets.ModelViewSet):
     """ViewSet GET, POST, PATCH, DELETE  методы для профиля пользователя"""
     queryset = User.objects.all().order_by('id')
     serializer_class = UserReadSerializer
@@ -80,10 +81,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class GenreViewSet(mixins.ListModelMixin,
-                   mixins.CreateModelMixin,
-                   mixins.DestroyModelMixin,
-                   viewsets.GenericViewSet):
+class GenreViewSet(ListCreateDestroyViewSet):
     """ViewSet POST, GET, DELETE методы для Genre сериализатора"""
     queryset = Genre.objects.all().order_by('id')
     serializer_class = GenreSerializer
@@ -93,10 +91,7 @@ class GenreViewSet(mixins.ListModelMixin,
     permission_classes = (AdminOrReadOnly,)
 
 
-class CategoryViewSet(mixins.ListModelMixin,
-                      mixins.CreateModelMixin,
-                      mixins.DestroyModelMixin,
-                      viewsets.GenericViewSet):
+class CategoryViewSet(ListCreateDestroyViewSet):
     """ViewSet POST, GET, DELETE методы для Category сериализатора"""
     queryset = Category.objects.all().order_by('id')
     serializer_class = CategorySerializer
