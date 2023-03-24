@@ -14,8 +14,8 @@ from .permissions import (AdminOnly, AdminOrReadOnly,
                           AuthorOrModeratorOrAdminOrReadOnly)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
-                          UserCreateSerializer, UserSendTokenSerializer,
-                          UserReadSerializer)
+                          UserCreateSerializer, UserReadSerializer,
+                          UserSendTokenSerializer)
 from .utilities import send_confirm_code
 from reviews.models import Category, Genre, Review, Title, User
 
@@ -27,7 +27,7 @@ class UserCreateView(APIView):
     def post(self, request):
         serializer = UserCreateSerializer(data=request.data)
         if serializer.is_valid():
-            user, create = User.objects.get_or_create(
+            user, _ = User.objects.get_or_create(
                 **serializer.validated_data)
             confirm_code = default_token_generator.make_token(user)
             send_confirm_code(user.email, confirm_code)
@@ -55,7 +55,7 @@ class UserSendTokenView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserReadViewSet(viewsets.ModelViewSet):
     """ViewSet GET, POST, PATCH, DELETE  методы для профиля пользователя"""
     queryset = User.objects.all().order_by('id')
     serializer_class = UserReadSerializer
