@@ -5,4 +5,4 @@ class ListCreateDestroyViewSet(mixins.ListModelMixin,
                                mixins.CreateModelMixin,
                                mixins.DestroyModelMixin,
                                viewsets.GenericViewSet):
-    pass
+    """ViewSet GET, POST, PATCH, DELETE"""

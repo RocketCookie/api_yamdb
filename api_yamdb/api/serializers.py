@@ -42,7 +42,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return data
 
 
-class UserSendTokenSerializer(serializers.ModelSerializer):
+class UserSendTokenSerializer(serializers.Serializer):
     """Сериализатор проверки кода подтверждения"""
     username = serializers.CharField(max_length=150,)
     confirmation_code = serializers.CharField(max_length=39,)

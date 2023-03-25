@@ -39,15 +39,18 @@ class Category(models.Model):
 
 class Title(models.Model):
     """Модель БД для произведений"""
-
     name = models.CharField('Наименование', max_length=256)
     year = models.IntegerField('Год издания', validators=[validate_year],
                                db_index=True)
-    genre = models.ManyToManyField(Genre, through='GenreTitle')
+    genre = models.ManyToManyField(
+        Genre, through='GenreTitle', verbose_name='Жанр')
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
-        related_name='title', blank=False, null=True)
+        related_name='title',
+        blank=False,
+        null=True,
+        verbose_name='Категория')
     description = models.TextField('Описание')
 
     class Meta:
@@ -65,8 +68,10 @@ class Title(models.Model):
 
 class GenreTitle(models.Model):
     """Промежуточная модель БД для жанров"""
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
-    title = models.ForeignKey(Title, on_delete=models.CASCADE)
+    genre = models.ForeignKey(
+        Genre, on_delete=models.CASCADE, verbose_name='Жанр')
+    title = models.ForeignKey(
+        Title, on_delete=models.CASCADE, verbose_name='Категория')
 
     def __str__(self) -> str:
         return f'{self.genre} {self.title}'
@@ -119,13 +124,11 @@ class Comment(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='comments',
         verbose_name='Автор'
     )
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
-        related_name='comments',
         verbose_name='Отзыв'
     )
     text = models.TextField(verbose_name='Текст')
@@ -139,3 +142,4 @@ class Comment(models.Model):
         verbose_name = 'Комментарий к отзыву'
         verbose_name_plural = 'Комментарии к отзыву'
         ordering = ['-pub_date']
+        default_related_name = 'comments'

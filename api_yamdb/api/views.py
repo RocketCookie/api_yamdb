@@ -139,6 +139,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return self.get_review().comments.all()
+    # без all() - падают тесты
+    # test_02_comment - TypeError: 'RelatedManager' object is not subscriptable
 
     def perform_create(self, serializer):
         serializer.save(
